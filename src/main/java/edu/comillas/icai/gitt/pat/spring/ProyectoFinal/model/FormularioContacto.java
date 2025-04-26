@@ -1,9 +1,11 @@
 package edu.comillas.icai.gitt.pat.spring.ProyectoFinal.model;
 
+import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
+@Entity
 public class FormularioContacto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
