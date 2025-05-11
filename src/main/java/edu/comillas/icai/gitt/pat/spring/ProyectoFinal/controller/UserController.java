@@ -17,7 +17,8 @@ public class UserController {
     private ServicioUsuario servicioUsuario;
 
     @PostMapping("/api/sinusuario/contacto")
-    @CrossOrigin(origins = "http://localhost:63342")
+    @CrossOrigin(origins = "*")
+    //@CrossOrigin(origins = "http://localhost:63342")
     public ResponseEntity<FormularioContacto> contactar(@RequestBody FormularioContacto formularioContacto) {
         FormularioContacto guardado = servicioUsuario.contactar(
                 formularioContacto.getNombre(),
