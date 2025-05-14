@@ -14,10 +14,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
@@ -61,6 +58,29 @@ public class UserController {
             return servicioUsuario.register(register);
         }catch(Exception e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/api/logout")
+    @CrossOrigin(origins = "*")
+    public ResponseEntity<Void> logout(@RequestHeader(HttpHeaders.COOKIE) String cookie) {
+        if (servicioUsuario.logout(cookie)) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .header(HttpHeaders.SET_COOKIE, "session=; Path=/; Max-Age=0; HttpOnly")
+                    .build();
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La sesión ha expirado o el usuario no ha iniciado sesión.");
+        }
+    }
+
+    @DeleteMapping("/api/deleteAccount")
+    @CrossOrigin(origins = "*")
+    public ResponseEntity<Void> deleteAccount(@RequestHeader(HttpHeaders.COOKIE) String cookie) {
+        boolean success = servicioUsuario.deleteAccount(cookie);
+        if (success) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "La cuenta no se puede eliminar. Asegúrese de haber iniciado sesión.");
         }
     }
 }

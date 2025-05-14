@@ -3,17 +3,13 @@ package edu.comillas.icai.gitt.pat.spring.ProyectoFinal.service;
 import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.entidad.Token;
 import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.model.FormularioContacto;
 import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.entidad.Usuario;
-import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.model.ProfileResponse;
-import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.model.RegisterRequest;
-import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.model.Role;
 import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.repository.FormularioContactoRepositorio;
 import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.repository.TokenRepositorio;
 import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.repository.UsuarioRepositorio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import static edu.comillas.icai.gitt.pat.spring.ProyectoFinal.model.Role.ADMIN;
-import static edu.comillas.icai.gitt.pat.spring.ProyectoFinal.model.Role.USUARIO;
+import java.util.Optional;
 
 @Service
 public class ServicioUsuario {
@@ -30,6 +26,7 @@ public class ServicioUsuario {
         FormularioContacto formularioContacto = new FormularioContacto(nombre, email, mensaje);
         return formularioContactoRepositorio.save(formularioContacto);
     }
+
     public Token login(String email,String password){
         Usuario usuario= usuarioRepositorio.findByEmail(email);
         if(usuario==null){
@@ -40,34 +37,58 @@ public class ServicioUsuario {
         if(token!=null){
             return token;
         }
+
         token =new Token();
         token.setUsuario(usuarioRepositorio.findByEmail(email));
         tokenRepositorio.save(token);
         return token;
     }
-public ProfileResponse register(RegisterRequest registro) {
-    if (registro == null) {
-        return null;
-    }
-    Usuario nuevoUsuario = new Usuario();
-    nuevoUsuario.setEmail(registro.email());
-    nuevoUsuario.setNombre(registro.nombre());
-    nuevoUsuario.setDni(registro.dni());
-    nuevoUsuario.setPassword(registro.password());
 
-    if (registro.email().endsWith("@vibewear.com")) {
-        nuevoUsuario.setRol(Role.ADMIN);
-    } else {
-        nuevoUsuario.setRol(Role.USUARIO);
-    }
-    usuarioRepositorio.save(nuevoUsuario);
-    return new ProfileResponse(
-            nuevoUsuario.getNombre(),
-            nuevoUsuario.getEmail(),
-            nuevoUsuario.getRol()
-    );
+    public ProfileResponse register(RegisterRequest registro) {
+        if (registro == null) {
+            return null;
+        }
 
-}
+        Usuario nuevoUsuario = new Usuario();
+        nuevoUsuario.setEmail(registro.email());
+        nuevoUsuario.setNombre(registro.nombre());
+        nuevoUsuario.setDni(registro.dni());
+        nuevoUsuario.setPassword(registro.password());
+
+        if (registro.email().endsWith("@vibewear.com")) {
+            nuevoUsuario.setRol(Role.ADMIN);
+        } else {
+            nuevoUsuario.setRol(Role.USUARIO);
+        }
+        usuarioRepositorio.save(nuevoUsuario);
+        return new ProfileResponse(
+                nuevoUsuario.getNombre(),
+                nuevoUsuario.getEmail(),
+                nuevoUsuario.getRol()
+        );
+    }
+
+    public boolean logout(String cookie) {
+        Optional<Token> optionalToken = tokenRepositorio.findById(cookie);
+        if (optionalToken.isPresent()) {
+            Token token = optionalToken.get();
+            tokenRepositorio.delete(token);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean deleteAccount(String cookie) {
+        Optional<Token> optionalToken = tokenRepositorio.findById(cookie);
+        if (optionalToken.isPresent()) {
+            Token token = optionalToken.get();
+            Usuario usuario = token.getUsuario();
+            tokenRepositorio.deleteAllByUsuario(usuario);
+            usuarioRepositorio.delete(usuario);
+            return true;
+        }
+        return false;
+    }
 
     /*public Usuario buscarUsuarioExistente(String email,String contraseña){
         return usuarioRepositorio.findByEmail(email);
