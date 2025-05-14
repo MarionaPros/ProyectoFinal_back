@@ -1,11 +1,11 @@
 package edu.comillas.icai.gitt.pat.spring.ProyectoFinal.entidad;
 
-import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.model.Role;
 import jakarta.persistence.*;
+
+import javax.management.relation.Role;
 
 @Entity
 public class Usuario {
-
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
@@ -24,7 +24,6 @@ public class Usuario {
 
     @Column(nullable=false,unique=true)
     private String dni;
-
 
     // Getters y setters
     public String getEmail() {
@@ -55,5 +54,4 @@ public class Usuario {
     public void setNombre(String nombre) {this.nombre = nombre;}
     public String getDni() {return dni;}
     public void setDni(String dni) {this.dni = dni;}
-
 }
