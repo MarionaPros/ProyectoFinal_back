@@ -39,28 +39,41 @@ public class UserController {
 
     @PostMapping("/api/login")
     @CrossOrigin(origins = "*")
-    public ResponseEntity<String> login(@Valid @RequestBody LoginRequest credenciales) {
+    public ResponseEntity<ProfileResponse> login(@Valid @RequestBody LoginRequest credenciales) {
         Token tokenSesion = servicioUsuario.login(credenciales.email(), credenciales.password());
 
-        if (tokenSesion == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED); //Si el token es nulo
-        //quiere decir que dichas credenciales no se encuentran en la base de datos y, por tanto, la persona
-        //no está autorizada a entrar.
+        if (tokenSesion == null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+
         ResponseCookie session = ResponseCookie
                 .from("session", tokenSesion.id)
                 .httpOnly(true)
                 .path("/")
                 .sameSite("Strict")
                 .build();
-        return ResponseEntity.status(HttpStatus.CREATED).header(HttpHeaders.SET_COOKIE, session.toString()).build();
+
+        Usuario usuario = tokenSesion.getUsuario();
+        ProfileResponse perfil = new ProfileResponse(
+                usuario.getNombre(),
+                usuario.getEmail(),
+                usuario.getRol()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .header(HttpHeaders.SET_COOKIE, session.toString())
+                .body(perfil);
     }
+
 
     @PostMapping("/api/register")
     @CrossOrigin(origins = "*")
-    public ProfileResponse register(@Valid @RequestBody RegisterRequest register){
+    public ResponseEntity<ProfileResponse> register(@Valid @RequestBody RegisterRequest register){
         try{
-            return servicioUsuario.register(register);
+            ProfileResponse profile = servicioUsuario.register(register);
+            return ResponseEntity.status(HttpStatus.CREATED).body(profile);
         }catch(Exception e){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
     }
 }
+
