@@ -1,16 +1,19 @@
 package edu.comillas.icai.gitt.pat.spring.ProyectoFinal.service;
 
+import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.entidad.Carrito;
+import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.entidad.CarritoItem;
 import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.entidad.Token;
-import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.model.FormularioContacto;
+import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.model.*;
 import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.entidad.Usuario;
-import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.model.ProfileResponse;
-import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.model.RegisterRequest;
-import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.model.Role;
 import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.repository.FormularioContactoRepositorio;
 import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.repository.TokenRepositorio;
 import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.repository.UsuarioRepositorio;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 import static edu.comillas.icai.gitt.pat.spring.ProyectoFinal.model.Role.ADMIN;
 import static edu.comillas.icai.gitt.pat.spring.ProyectoFinal.model.Role.USUARIO;
@@ -26,13 +29,14 @@ public class ServicioUsuario {
     @Autowired
     private TokenRepositorio tokenRepositorio;
 
+
     public FormularioContacto contactar(String nombre, String email, String mensaje) {
         FormularioContacto formularioContacto = new FormularioContacto(nombre, email, mensaje);
         return formularioContactoRepositorio.save(formularioContacto);
     }
     public Token login(String email,String password){
         Usuario usuario= usuarioRepositorio.findByEmail(email);
-        if(usuario==null){
+        if(usuario==null|| !usuario.getPassword().equals(password)){
             return null;
         }
 
@@ -52,13 +56,19 @@ public ProfileResponse register(RegisterRequest registro) {
     Usuario nuevoUsuario = new Usuario();
     nuevoUsuario.setEmail(registro.email());
     nuevoUsuario.setNombre(registro.nombre());
-    nuevoUsuario.setDni(registro.dni());
+    nuevoUsuario.setDireccion(registro.direccion());
     nuevoUsuario.setPassword(registro.password());
+    nuevoUsuario.setTelefono(registro.telefono());
+    nuevoUsuario.setFechaNacimiento(registro.fechaNacimiento());
 
     if (registro.email().endsWith("@vibewear.com")) {
         nuevoUsuario.setRol(Role.ADMIN);
     } else {
         nuevoUsuario.setRol(Role.USUARIO);
+        Carrito carrito = new Carrito();
+        carrito.setUsuario(nuevoUsuario);
+        nuevoUsuario.setCarrito(carrito);
+
     }
     usuarioRepositorio.save(nuevoUsuario);
     return new ProfileResponse(
@@ -68,18 +78,37 @@ public ProfileResponse register(RegisterRequest registro) {
     );
 
 }
+    public ProfileResponse obtenerPerfil(String tokenId) {
+        if (tokenId == null) return null;
 
-    /*public Usuario buscarUsuarioExistente(String email,String contraseña){
-        return usuarioRepositorio.findByEmail(email);
+        Token token = tokenRepositorio.findById(tokenId).orElse(null);
+        if (token == null) return null;
+
+        Usuario usuario = token.getUsuario();
+
+        return new ProfileResponse(
+                usuario.getNombre(),
+                usuario.getEmail(),
+                usuario.getRol()
+        );
     }
-    public Usuario getUsuarioByEmail(String email) {
-        if (email.endsWith("@vibewear.com")) {
-            return new Usuario("admin@vibewear.com", "admin123", "admin");
-        } else if ("comprador@site.com".equals(email)) {
-            return new Usuario("comprador@site.com", "comprador123", "comprador");
-        } else if ("vendedor@site.com".equals(email)) {
-            return new Usuario("vendedor@site.com", "vendedor123", "vendedor");
+    public void logout(String tokenId) {
+        tokenRepositorio.deleteById(tokenId);
+    }
+    public void borrarCuenta(String tokenId) {
+        Token token = tokenRepositorio.findById(tokenId).orElse(null);
+        if (token == null) {
+            throw new IllegalStateException("Sesión inválida");
         }
-        return null;
-    }*/
+
+        Usuario usuario = token.getUsuario();
+
+        // Eliminar el token
+        tokenRepositorio.delete(token);
+
+        // Eliminar el usuario (con su carrito si la relación está en cascada)
+        usuarioRepositorio.delete(usuario);
+    }
+
+
 }
