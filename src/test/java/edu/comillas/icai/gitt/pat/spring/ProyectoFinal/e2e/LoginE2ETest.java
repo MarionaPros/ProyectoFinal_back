@@ -12,6 +12,8 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.test.annotation.DirtiesContext;
 
+import java.time.LocalDate;
+
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class LoginE2ETest {
@@ -25,11 +27,13 @@ public class LoginE2ETest {
         private static final String NAME = "Name";
         private static final String EMAIL = "name1@email.com";
         private static final String PASS = "aaaaaaA1!";
-        private static final String DNI = "13345678Z";
+        private static final String DIRECCION = "Calle Falsa 123";
+        private static final Integer TELEFONO = 600112233;
+        private static final LocalDate FECHA_NAC = LocalDate.of(2000, 1, 1);
 
         @BeforeEach
         void registrarUsuario() throws Exception {
-            RegisterRequest request = new RegisterRequest(NAME, EMAIL, DNI, PASS);
+            RegisterRequest request = new RegisterRequest(NAME, EMAIL, PASS, DIRECCION, TELEFONO, FECHA_NAC);
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 

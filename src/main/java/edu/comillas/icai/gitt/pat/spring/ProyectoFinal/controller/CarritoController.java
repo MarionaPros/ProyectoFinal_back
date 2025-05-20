@@ -1,10 +1,12 @@
 package edu.comillas.icai.gitt.pat.spring.ProyectoFinal.controller;
 
+import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.entidad.*;
 import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.entidad.Carrito;
 import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.entidad.CarritoItem;
 import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.entidad.Token;
 import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.entidad.Usuario;
 import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.model.CarritoRequest;
+import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.model.Role;
 import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.repository.CarritoItemRepository;
 import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.repository.TokenRepositorio;
 import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.repository.UsuarioRepositorio;
@@ -78,6 +80,11 @@ public class CarritoController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
+        Usuario usuario = token.getUsuario();
+
+        if (usuario.getRol() == Role.ADMIN) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Los administradores no pueden acceder al carrito.");
+        }
 
         Carrito carrito = token.getUsuario().getCarrito();
 

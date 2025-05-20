@@ -4,7 +4,9 @@ import edu.comillas.icai.gitt.pat.spring.ProyectoFinal.model.Role;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 public class Usuario {
@@ -36,6 +38,9 @@ public class Usuario {
 
     @Column(nullable=false)
     private LocalDate fechaNacimiento;
+
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Token> tokens = new ArrayList<>();
 
     // Getters y setters
     public String getEmail() {
@@ -72,5 +77,17 @@ public class Usuario {
     public void setFechaNacimiento(LocalDate fechaNacimiento) {this.fechaNacimiento = fechaNacimiento;}
     public Carrito getCarrito() {return carrito;}
     public void setCarrito(Carrito carrito) {this.carrito = carrito;}
+    public void addToken(Token token) {
+        tokens.add(token);
+        token.setUsuario(this);
+    }
+
+    public void removeToken(Token token) {
+        tokens.remove(token);
+        token.setUsuario(null);
+    }
+    public List<Token> getTokens() { return tokens; }
+
+    public void setTokens(List<Token> tokens) { this.tokens = tokens; }
 
 }
